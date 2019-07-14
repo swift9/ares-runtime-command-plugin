@@ -1,4 +1,4 @@
-module github.com/swift9/ares-runtime-shell-plugin
+module github.com/swift9/ares-runtime-command-plugin
 
 go 1.12
 
