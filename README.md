@@ -1,5 +1,5 @@
-# ares-runtime-shell-plugin
+# ares-runtime-command-plugin
 
 ```
- ares-runtime-shell-plugin
+ ares-runtime-command-plugin
 ```
