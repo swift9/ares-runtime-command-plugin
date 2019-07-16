@@ -23,10 +23,10 @@ func (w *logWriter) Write(bytes []byte) (n int, err error) {
 }
 
 func (r *CommandRuntime) Start(cmd string, args ...string) int {
-	irayLogWriter := logWriter{
+	writer := logWriter{
 		r: r,
 	}
-	r.ShSession.Stdout = &irayLogWriter
+	r.ShSession.Stdout = &writer
 
 	var err error = nil
 	go func() {
@@ -39,7 +39,7 @@ func (r *CommandRuntime) Start(cmd string, args ...string) int {
 			}
 			err = r.ShSession.Command(cmd, cmdArgs...).Run()
 		}
-		r.Emit("exit", err)
+		r.Emit("exit", err.Error())
 	}()
 
 	// quick check error
