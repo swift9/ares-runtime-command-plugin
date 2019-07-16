@@ -9,10 +9,8 @@ import (
 
 type CommandRuntime struct {
 	runtime.Runtime
-	ShSession  *sh.Session
-	IdleFunc   func() int
-	HealthFunc func() int
-	Dir        string
+	ShSession *sh.Session
+	Dir       string
 }
 
 type logWriter struct {
@@ -44,10 +42,12 @@ func (r *CommandRuntime) Start(cmd string, args ...string) int {
 		r.Emit("exit", err)
 	}()
 
+	// quick check error
+	time.Sleep(3 * time.Second)
+
 	if err != nil {
 		return 1
 	}
-
 	return 0
 }
 
@@ -58,11 +58,11 @@ func (r *CommandRuntime) Stop() {
 }
 
 func (r *CommandRuntime) Idle() int {
-	return r.IdleFunc()
+	return 0
 }
 
 func (r *CommandRuntime) Health() int {
-	return r.HealthFunc()
+	return 0
 }
 
 func (r *CommandRuntime) Init() {
@@ -71,11 +71,9 @@ func (r *CommandRuntime) Init() {
 	r.ShSession.SetDir(r.Dir)
 }
 
-func New(idleFunc func() int, healthFunc func() int, dir string) runtime.IRuntime {
+func New(workDir string) runtime.IRuntime {
 	var r runtime.IRuntime = &CommandRuntime{
-		IdleFunc:   idleFunc,
-		HealthFunc: healthFunc,
-		Dir:        dir,
+		Dir: workDir,
 	}
 	r.Init()
 	return r
