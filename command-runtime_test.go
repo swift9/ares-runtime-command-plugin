@@ -8,11 +8,7 @@ import (
 )
 
 func restart() {
-	var irayRuntime runtime.IRuntime = New(func() int {
-		return 0
-	}, func() int {
-		return 0
-	}, "~")
+	var irayRuntime runtime.IRuntime = New("~")
 
 	irayRuntime.On("log", func(data string) {
 		if strings.Contains(data, "out of memory") ||

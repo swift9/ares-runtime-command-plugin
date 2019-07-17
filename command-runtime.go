@@ -27,6 +27,7 @@ func (r *CommandRuntime) Start(cmd string, args ...string) int {
 		r: r,
 	}
 	r.ShSession.Stdout = &writer
+	r.ShSession.Stderr = &writer
 
 	var err error = nil
 	go func() {
