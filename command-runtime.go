@@ -1,16 +1,17 @@
 package runtime
 
 import (
-	"github.com/codeskyblue/go-sh"
 	"github.com/swift9/ares-sdk/runtime"
+	"log"
+	"os/exec"
 	"syscall"
 	"time"
 )
 
 type CommandRuntime struct {
 	runtime.Runtime
-	ShSession *sh.Session
-	Dir       string
+	Dir string
+	Cmd *exec.Cmd
 }
 
 type logWriter struct {
@@ -23,39 +24,51 @@ func (w *logWriter) Write(bytes []byte) (n int, err error) {
 }
 
 func (r *CommandRuntime) Start(cmd string, args ...string) int {
-	writer := logWriter{
+	r.Cmd = exec.Command(cmd, args...)
+	r.Cmd.Dir = r.Dir
+	r.Cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	r.Cmd.Stdout = &logWriter{
 		r: r,
 	}
-	r.ShSession.Stdout = &writer
-	r.ShSession.Stderr = &writer
-
-	var err error = nil
-	go func() {
-		if args == nil || len(args) < 1 {
-			err = r.ShSession.Command(cmd).Run()
-		} else {
-			cmdArgs := make([]interface{}, len(args))
-			for i := range args {
-				cmdArgs[i] = args[i]
-			}
-			err = r.ShSession.Command(cmd, cmdArgs...).Run()
-		}
-		r.Emit("exit", err.Error())
-	}()
-
-	// quick check error
-	time.Sleep(3 * time.Second)
-
+	r.Cmd.Stderr = &logWriter{
+		r: r,
+	}
+	err := r.Cmd.Start()
 	if err != nil {
+		log.Println(err)
 		return 1
 	}
+	go func() {
+		err := r.Cmd.Wait()
+		if err != nil {
+			log.Println(err)
+		}
+		r.Emit("exit", err)
+	}()
 	return 0
 }
 
 func (r *CommandRuntime) Stop() {
-	if r.ShSession != nil {
-		r.ShSession.Kill(syscall.SIGKILL)
-	}
+	r.kill()
+	r.killAll()
+}
+
+func (r *CommandRuntime) kill() {
+	defer func() {
+		if e := recover(); e != nil {
+			log.Println(e)
+		}
+	}()
+	r.Cmd.Process.Kill()
+}
+
+func (r *CommandRuntime) killAll() {
+	defer func() {
+		if e := recover(); e != nil {
+			log.Println(e)
+		}
+	}()
+	syscall.Kill(-r.Cmd.Process.Pid, syscall.SIGKILL)
 }
 
 func (r *CommandRuntime) Idle() int {
@@ -68,8 +81,6 @@ func (r *CommandRuntime) Health() int {
 
 func (r *CommandRuntime) Init() {
 	r.CreateTime = time.Now()
-	r.ShSession = sh.NewSession()
-	r.ShSession.SetDir(r.Dir)
 }
 
 func New(workDir string) runtime.IRuntime {

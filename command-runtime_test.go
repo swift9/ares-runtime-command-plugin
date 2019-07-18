@@ -1,32 +1,44 @@
 package runtime
 
 import (
-	"github.com/swift9/ares-sdk/runtime"
+	"errors"
+	"log"
 	"strings"
 	"testing"
 	"time"
 )
 
 func restart() {
-	var irayRuntime runtime.IRuntime = New("~")
-
-	irayRuntime.On("log", func(data string) {
+	defer func() {
+		if e := recover(); e != nil {
+			log.Println(e)
+		}
+	}()
+	r := New("/opt/ihome/iray")
+	var a = r.Start("tail", "-f", "1.log")
+	println(a)
+	r.On("log", func(data string) {
 		if strings.Contains(data, "out of memory") ||
 			strings.Contains(data, "aborting render") {
-			irayRuntime.Stop()
+			r.Emit("exit", errors.New(data))
 		}
 	})
-	irayRuntime.Start("tail", "-f", "1.log")
-	irayRuntime.On("exit", func(err error) {
-		println(err.Error())
+	r.On("exit", func(err error) {
+		log.Println(err.Error())
+		r.Stop()
 		go func() {
 			time.Sleep(3 * time.Second)
-			restart()
+			r.Start("tail", "-f", "1.log")
 		}()
 	})
 }
 
 func TestStart(t *testing.T) {
+	defer func() {
+		if e := recover(); e != nil {
+			log.Println(e)
+		}
+	}()
 	restart()
 	time.Sleep(1 * time.Hour)
 }
