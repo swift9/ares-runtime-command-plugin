@@ -14,7 +14,7 @@ func restart() {
 			log.Println(e)
 		}
 	}()
-	r := New("/opt/ihome/iray")
+	r := New("~")
 	var a = r.Start("tail", "-f", "1.log")
 	println(a)
 	r.On("log", func(data string) {
