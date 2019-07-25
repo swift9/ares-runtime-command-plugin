@@ -35,16 +35,18 @@ func (r *CommandRuntime) Start(cmd string, args ...string) int {
 	}
 	err := r.Cmd.Start()
 	if err != nil {
-		log.Println(err)
+		log.Println("exit:", err)
 		r.Emit("exit", err)
 		return 1
 	}
 	go func() {
 		err := r.Cmd.Wait()
 		if err != nil {
-			log.Println(err)
+			log.Println("exit:", err)
+			r.Emit("exit", err)
+		} else {
+			r.Emit("exit")
 		}
-		r.Emit("exit", err)
 	}()
 	return 0
 }
