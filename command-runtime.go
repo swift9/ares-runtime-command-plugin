@@ -36,6 +36,7 @@ func (r *CommandRuntime) Start(cmd string, args ...string) int {
 	err := r.Cmd.Start()
 	if err != nil {
 		log.Println(err)
+		r.Emit("exit", err)
 		return 1
 	}
 	go func() {
