@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"errors"
 	"github.com/swift9/ares-sdk/runtime"
 	"log"
 	"os/exec"
@@ -45,7 +46,7 @@ func (r *CommandRuntime) Start(cmd string, args ...string) int {
 			log.Println("exit:", err)
 			r.Emit("exit", err)
 		} else {
-			r.Emit("exit")
+			r.Emit("exit", errors.New("null"))
 		}
 	}()
 	return 0
