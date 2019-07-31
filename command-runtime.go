@@ -45,6 +45,7 @@ func (r *CommandRuntime) Start(cmd string, args ...string) int {
 			log.Println("exit:", err)
 			r.Emit("exit", 1)
 		} else {
+			log.Println("exit:0")
 			r.Emit("exit", 0)
 		}
 	}()
