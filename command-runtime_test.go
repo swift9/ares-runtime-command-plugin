@@ -1,7 +1,8 @@
-package runtime
+package runtime_test
 
 import (
 	"errors"
+	runtime "github.com/swift9/ares-runtime-command-plugin"
 	"log"
 	"strings"
 	"testing"
@@ -14,7 +15,7 @@ func restart() {
 			log.Println(e)
 		}
 	}()
-	r := New("~")
+	r := runtime.NewCommandRuntime("~")
 	var a = r.Start("tail", "-f", "1.log")
 	println(a)
 	r.On("log", func(data string) {
@@ -23,8 +24,8 @@ func restart() {
 			r.Emit("exit", errors.New(data))
 		}
 	})
-	r.On("exit", func(err error) {
-		log.Println(err.Error())
+	r.On("exit", func(code int) {
+		log.Println(code)
 		r.Stop()
 		go func() {
 			time.Sleep(3 * time.Second)
