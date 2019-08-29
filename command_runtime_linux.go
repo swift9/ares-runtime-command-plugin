@@ -42,6 +42,7 @@ func (r *CommandRuntime) Start(cmd string, args ...string) int {
 		return 1
 	}
 	r.Emit("ready")
+	time.Sleep(1 * time.Second)
 	err = r.Cmd.Wait()
 	if err != nil {
 		log.Println("exit:", err)
