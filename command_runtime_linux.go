@@ -42,17 +42,18 @@ func (r *CommandRuntime) Start(cmd string, args ...string) int {
 		return 1
 	}
 	r.Emit("ready")
-	time.Sleep(1 * time.Second)
-	err = r.Cmd.Wait()
-	if err != nil {
-		log.Println("exit:", err)
-		r.Emit("exit", 1)
-		return 1
-	} else {
-		log.Println("exit:0")
-		r.Emit("exit", 0)
-		return 0
-	}
+	go func() {
+		time.Sleep(1 * time.Second)
+		err = r.Cmd.Wait()
+		if err != nil {
+			log.Println("exit:", err)
+			r.Emit("exit", 1)
+		} else {
+			log.Println("exit:0")
+			r.Emit("exit", 0)
+		}
+	}()
+	return 0
 }
 
 func (r *CommandRuntime) Stop() {
