@@ -2,5 +2,5 @@ github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05 h1:Shem5lRG4gJ
 github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05/go.mod h1:JS7hed4L1fj0hXcyEejnW57/7LCetXggd+vwrRnYeII=
 github.com/swift9/ares-event v0.0.1 h1:9h+LJMi91T4tMRaz2zb2xmt+tRSq7+8M+It6CUVw7mY=
 github.com/swift9/ares-event v0.0.1/go.mod h1:CnPOYe56bJKuv2D27fIO6kpyiLIT80tNY5hpn9R2HYQ=
-github.com/swift9/ares-sdk v0.0.10 h1:Xf9L5J2LyfXHNuNoxlAwwOTzjpaksLLVNlE6dWpwhl4=
-github.com/swift9/ares-sdk v0.0.10/go.mod h1:r7tbT9+fZryRX0JqoDtd6cyFwCoz/+sVmQ6eEfANZIA=
+github.com/swift9/ares-sdk v0.0.11 h1:g5rte5DOSpNHNCv9FrTahMQJz4GgbAkbBcaSX0mtUc0=
+github.com/swift9/ares-sdk v0.0.11/go.mod h1:r7tbT9+fZryRX0JqoDtd6cyFwCoz/+sVmQ6eEfANZIA=
