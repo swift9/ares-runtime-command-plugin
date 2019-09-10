@@ -66,15 +66,15 @@ func (r *CommandRuntime) kill() {
 }
 
 func (r *CommandRuntime) Idle() int {
-	return 0
+	return -1
 }
 
-func (r *CommandRuntime) Health() int {
-	return 0
+func (r *CommandRuntime) Health() runtime.Status {
+	return runtime.NewStatusUp()
 }
 
 func (r *CommandRuntime) Init() {
-	r.CreateTime = time.Now()
+	r.Meta["CreateTime"] = time.Now()
 }
 
 func NewCommandRuntime(workDir string) runtime.IRuntime {
