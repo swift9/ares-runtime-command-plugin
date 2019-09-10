@@ -7,7 +7,6 @@ import (
 	"log"
 	"os/exec"
 	"syscall"
-	"time"
 )
 
 type CommandRuntime struct {
@@ -86,7 +85,6 @@ func (r *CommandRuntime) Health() runtime.Status {
 }
 
 func (r *CommandRuntime) Init() {
-	r.Meta["CreateTime"] = time.Now()
 }
 
 func NewCommandRuntime(workDir string) runtime.IRuntime {
