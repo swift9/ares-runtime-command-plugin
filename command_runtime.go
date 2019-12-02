@@ -1,12 +1,9 @@
 package runtime
 
 import (
-	"fmt"
 	event "github.com/swift9/ares-event"
 	"log"
 	"os/exec"
-	"runtime"
-	"syscall"
 )
 
 type Env struct {
@@ -49,7 +46,8 @@ func (r *Runtime) Start() int {
 	for _, env := range command.Envs {
 		r.Cmd.Env = append(r.Cmd.Env, env.Name+"="+env.Value)
 	}
-	r.Cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+
+	enableGroupKill(r.Cmd)
 
 	r.Cmd.Stdout = &logWriter{
 		r: r,
@@ -77,10 +75,7 @@ func (r *Runtime) Start() int {
 }
 
 func (r *Runtime) Stop() int {
-	if runtime.GOOS == "windows" {
-		exec.Command("taskkill", "/F", "/T", "/PID", fmt.Sprint(r.Cmd.Process.Pid)).Run()
-	}
-	r.killAll()
+	killGroup(r.Cmd.Process.Pid)
 	r.kill()
 	return 0
 }
@@ -92,15 +87,6 @@ func (r *Runtime) kill() error {
 		}
 	}()
 	return r.Cmd.Process.Kill()
-}
-
-func (r *Runtime) killAll() error {
-	defer func() {
-		if e := recover(); e != nil {
-			log.Println(e)
-		}
-	}()
-	return syscall.Kill(-r.Cmd.Process.Pid, syscall.SIGKILL)
 }
 
 func (r *Runtime) Idle() int {
