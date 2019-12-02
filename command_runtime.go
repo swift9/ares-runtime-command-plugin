@@ -1,22 +1,36 @@
-// +build linux
-
 package runtime
 
 import (
-	"github.com/swift9/ares-sdk/runtime"
+	"fmt"
+	event "github.com/swift9/ares-event"
 	"log"
 	"os/exec"
+	"runtime"
 	"syscall"
 )
 
-type CommandRuntime struct {
-	runtime.Runtime
-	Dir string
-	Cmd *exec.Cmd
+type Env struct {
+	Name  string
+	Value string
+}
+
+type Command struct {
+	Envs     []Env
+	Cmd      string
+	Args     []string
+	Dir      string
+	Addition map[string]string
+}
+
+type Runtime struct {
+	event.Emitter
+	Meta    map[string]interface{}
+	Command Command
+	Cmd     *exec.Cmd
 }
 
 type logWriter struct {
-	r *CommandRuntime
+	r *Runtime
 }
 
 func (w *logWriter) Write(bytes []byte) (n int, err error) {
@@ -24,9 +38,10 @@ func (w *logWriter) Write(bytes []byte) (n int, err error) {
 	return len(bytes), nil
 }
 
-func (r *CommandRuntime) Start(command runtime.ProcessCommand) int {
+func (r *Runtime) Start() int {
+	command := r.Command
 	r.Cmd = exec.Command(command.Cmd, command.Args...)
-	r.Cmd.Dir = r.Dir
+	r.Cmd.Dir = command.Dir
 
 	if len(r.Cmd.Env) == 0 {
 		r.Cmd.Env = []string{}
@@ -34,8 +49,8 @@ func (r *CommandRuntime) Start(command runtime.ProcessCommand) int {
 	for _, env := range command.Envs {
 		r.Cmd.Env = append(r.Cmd.Env, env.Name+"="+env.Value)
 	}
-
 	r.Cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+
 	r.Cmd.Stdout = &logWriter{
 		r: r,
 	}
@@ -61,43 +76,47 @@ func (r *CommandRuntime) Start(command runtime.ProcessCommand) int {
 	}
 }
 
-func (r *CommandRuntime) Stop() {
-	r.kill()
+func (r *Runtime) Stop() int {
+	if runtime.GOOS == "windows" {
+		exec.Command("taskkill", "/F", "/T", "/PID", fmt.Sprint(r.Cmd.Process.Pid)).Run()
+	}
 	r.killAll()
+	r.kill()
+	return 0
 }
 
-func (r *CommandRuntime) kill() {
+func (r *Runtime) kill() error {
 	defer func() {
 		if e := recover(); e != nil {
 			log.Println(e)
 		}
 	}()
-	r.Cmd.Process.Kill()
+	return r.Cmd.Process.Kill()
 }
 
-func (r *CommandRuntime) killAll() {
+func (r *Runtime) killAll() error {
 	defer func() {
 		if e := recover(); e != nil {
 			log.Println(e)
 		}
 	}()
-	syscall.Kill(-r.Cmd.Process.Pid, syscall.SIGKILL)
+	return syscall.Kill(-r.Cmd.Process.Pid, syscall.SIGKILL)
 }
 
-func (r *CommandRuntime) Idle() int {
+func (r *Runtime) Idle() int {
 	return -1
 }
 
-func (r *CommandRuntime) Health() runtime.Status {
-	return runtime.NewStatusUp()
+func (r *Runtime) Health() Status {
+	return NewStatusUp()
 }
 
-func (r *CommandRuntime) Init() {
+func (r *Runtime) Init() {
 }
 
-func NewCommandRuntime(workDir string) runtime.IRuntime {
-	var r runtime.IRuntime = &CommandRuntime{
-		Dir: workDir,
+func NewRuntime(command Command) IRuntime {
+	var r IRuntime = &Runtime{
+		Command: command,
 	}
 	r.Init()
 	return r
