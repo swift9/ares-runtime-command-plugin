@@ -23,9 +23,17 @@ func (w *logWriter) Write(bytes []byte) (n int, err error) {
 	return len(bytes), nil
 }
 
-func (r *CommandRuntime) Start(cmd string, args ...string) int {
+func (r *CommandRuntime) Start(command runtime.ProcessCommand) int {
 	r.Cmd = exec.Command(cmd, args...)
 	r.Cmd.Dir = r.Dir
+
+	if len(r.Cmd.Env) == 0 {
+		r.Cmd.Env = []string{}
+	}
+	for _, env := range command.Envs {
+		r.Cmd.Env = append(r.Cmd.Env, env.Name+"="+env.Value)
+	}
+
 	r.Cmd.Stdout = &logWriter{
 		r: r,
 	}
