@@ -3,6 +3,7 @@ package runtime
 import (
 	event "github.com/swift9/ares-event"
 	"log"
+	"os"
 	"os/exec"
 )
 
@@ -43,6 +44,11 @@ func (r *Runtime) Start() int {
 	if len(r.Cmd.Env) == 0 {
 		r.Cmd.Env = []string{}
 	}
+
+	for _, environ := range os.Environ() {
+		r.Cmd.Env = append(r.Cmd.Env, environ)
+	}
+
 	for _, env := range command.Envs {
 		r.Cmd.Env = append(r.Cmd.Env, env.Name+"="+env.Value)
 	}
