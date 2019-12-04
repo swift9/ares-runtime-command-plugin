@@ -125,9 +125,11 @@ func (r *Runtime) Health() Status {
 func (r *Runtime) Init() {
 }
 
-func NewRuntime(command Command) IRuntime {
+func NewRuntime(command Command, log io.Writer, logEverything bool) IRuntime {
 	var r IRuntime = &Runtime{
-		Command: command,
+		Command:       command,
+		LogWriter:     log,
+		LogEverything: logEverything,
 	}
 	r.Init()
 	return r
