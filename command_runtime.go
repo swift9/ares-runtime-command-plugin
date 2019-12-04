@@ -2,6 +2,7 @@ package runtime
 
 import (
 	event "github.com/swift9/ares-event"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -22,9 +23,11 @@ type Command struct {
 
 type Runtime struct {
 	event.Emitter
-	Meta    map[string]interface{}
-	Command Command
-	Cmd     *exec.Cmd
+	Meta          map[string]interface{}
+	Command       Command
+	Cmd           *exec.Cmd
+	LogEverything bool
+	LogWriter     io.Writer
 }
 
 type logWriter struct {
@@ -33,7 +36,17 @@ type logWriter struct {
 
 func (w *logWriter) Write(bytes []byte) (n int, err error) {
 	w.r.Emit("log", string(bytes))
+	if w.r.LogEverything && w.r.LogWriter != nil {
+		w.r.LogWriter.Write(bytes)
+	}
 	return len(bytes), nil
+}
+
+func (r *Runtime) getLogWriter() io.Writer {
+	if r.LogWriter != nil {
+		return r.LogWriter
+	}
+	return os.Stdout
 }
 
 func (r *Runtime) Start() int {
@@ -63,25 +76,31 @@ func (r *Runtime) Start() int {
 	}
 	err := r.Cmd.Start()
 	if err != nil {
-		log.Println("start error ", err)
+		r.getLogWriter().Write([]byte("start error " + err.Error()))
 		r.Emit("exit", 1)
 		return 1
 	}
 	r.Emit("ready")
 	err = r.Cmd.Wait()
 	if err != nil {
-		log.Println("wait error ", err)
+		r.getLogWriter().Write([]byte("wait error " + err.Error()))
 		r.Emit("exit", 1)
 		return 1
 	} else {
 		log.Println("exit")
+		r.getLogWriter().Write([]byte("exit"))
 		r.Emit("exit", 0)
 		return 0
 	}
 }
 
 func (r *Runtime) Stop() int {
-	killGroup(r.Cmd.Process.Pid)
+	defer func() {
+		if e := recover(); e != nil {
+			r.getLogWriter().Write([]byte("unknown"))
+		}
+	}()
+	r.killGroup(r.Cmd.Process.Pid)
 	r.kill()
 	return 0
 }
@@ -89,7 +108,7 @@ func (r *Runtime) Stop() int {
 func (r *Runtime) kill() error {
 	defer func() {
 		if e := recover(); e != nil {
-			log.Println(e)
+			r.getLogWriter().Write([]byte("unknown"))
 		}
 	}()
 	return r.Cmd.Process.Kill()

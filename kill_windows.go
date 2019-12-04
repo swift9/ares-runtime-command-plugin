@@ -4,18 +4,18 @@ package runtime
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
 )
 
 func enableGroupKill(cmd *exec.Cmd) {
 }
 
-func killGroup(pid int) error {
+func (r *Runtime) killGroup(pid int) error {
 	defer func() {
 		if e := recover(); e != nil {
-			log.Println(e)
+			r.getLogWriter().Write([]byte("unknown"))
 		}
 	}()
+	r.getLogWriter().Write([]byte("taskkill /T " + fmt.Sprint(pid)))
 	return exec.Command("taskkill", "/F", "/T", "/PID", fmt.Sprint(pid)).Run()
 }
