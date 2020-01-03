@@ -5,6 +5,7 @@ package runtime
 import (
 	"fmt"
 	"os/exec"
+	"syscall"
 )
 
 func enhanceCmd(cmd *exec.Cmd) {
