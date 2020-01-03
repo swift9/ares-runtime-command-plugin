@@ -7,7 +7,7 @@ import (
 	"syscall"
 )
 
-func enableGroupKill(cmd *exec.Cmd) {
+func enhanceCmd(cmd *exec.Cmd) {
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 }
 

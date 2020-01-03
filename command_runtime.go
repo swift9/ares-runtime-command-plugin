@@ -53,7 +53,6 @@ func (r *Runtime) Start() int {
 	command := r.Command
 	r.Cmd = exec.Command(command.Cmd, command.Args...)
 	r.Cmd.Dir = command.Dir
-
 	if len(r.Cmd.Env) == 0 {
 		r.Cmd.Env = []string{}
 	}
@@ -66,7 +65,7 @@ func (r *Runtime) Start() int {
 		r.Cmd.Env = append(r.Cmd.Env, env.Name+"="+env.Value)
 	}
 
-	enableGroupKill(r.Cmd)
+	enhanceCmd(r.Cmd)
 
 	r.Cmd.Stdout = &logWriter{
 		r: r,

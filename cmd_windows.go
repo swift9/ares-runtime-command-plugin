@@ -7,7 +7,8 @@ import (
 	"os/exec"
 )
 
-func enableGroupKill(cmd *exec.Cmd) {
+func enhanceCmd(cmd *exec.Cmd) {
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 }
 
 func (r *Runtime) killGroup(pid int) error {
